@@ -1,0 +1,8 @@
+"isolation"
+{
+	"base"		"base"
+	"title"		"isolation"
+	"maps"		"^is_"
+	"menusystem"	"1"
+	"workshopid"	""
+}
