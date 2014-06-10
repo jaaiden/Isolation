@@ -1,0 +1,7 @@
+"LightmappedGeneric"
+{
+	"$basetexture" "isolation\m14_outline"
+	"$decal" 1
+	"$decalscale" 0.25
+	"$translucent" 1
+}
