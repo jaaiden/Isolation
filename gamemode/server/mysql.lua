@@ -127,10 +127,3 @@ concommand.Add("isolation_savedata", function(ply, cmd, args)
 end)
 
 db:connect()
-
-
-
-
-
-
-
