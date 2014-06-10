@@ -27,6 +27,31 @@ cMoneyPerKill = 10
 -- Minimum amount of players before starting the game (Multiplayer ONLY; Default: 2; Maximum: 8)
 cMinPlayers = 2
 
+/* Global Database Configuration:
+---------------------------------
+The Isolation Global Database is a central datacenter for holding global player stats.
+
+Think of this like leaderboards. Any player who joins a server with the Global Database will be able to access
+their stats from another Global Database server. This way they can keep the same level and skillpoints they earned from another server.
+
+A good server owner would enable this for the best possible experience on their servers. However it requires the MySQLOO and libmysql modules to be installed,
+so this option is disabled by default. (Especially for the Workshop edition of the gamemode.)
+
+If you are running Windows for your server, use these links:
+	MySQLOO: http://drakehawke-gmod.googlecode.com/svn/trunk/AndyVincentGMod/RELEASE/gmsv_mysqloo_win32.dll
+	libmysql.dll: http://puu.sh/1fhWu
+
+If you are running Linux for your server, use these instead:
+	MySQLOO: http://drakehawke-gmod.googlecode.com/svn/trunk/AndyVincentGMod/RELEASE/gmsv_mysqloo_linux.dll
+	libmysql.so: http://puu.sh/1ikIN
+
+Place your MySQLOO.dll file in "your/server/path/garrysmod/lua/bin" (If the folder doesn't exist, create it)
+Place your specific libmysql file in the root folder of your server (Where srcds.exe/srcds_run is)
+
+If you would like to enable this feature (recommended) just change 'false' to 'true' below. */
+
+enableDatabase = false
+
 /* Player configuration
 =======================*/
 
