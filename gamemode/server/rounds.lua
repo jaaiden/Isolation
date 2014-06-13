@@ -1,3 +1,4 @@
+zombieSpawnsEnabled = {}
 zombieSpawns = {}
 maxZombies = 0
 experience = 3
@@ -10,6 +11,26 @@ zombies = 0
 round = 0
 health = 5
 moneyPerKill = 10
+
+function FindZombieSpawns()
+    for _, v in pairs(ents.GetAll()) do
+        local sep = string.Explode(" ", v:GetName())
+        if sep[1] == "ZombieSpawn" then
+            table.insert(zombieSpawns, v)
+        end
+        if not table.HasValue(tonumber(sep[2])) then
+        		table.insert(zombieSpawnsEnabled, tonumber(sep[2]))
+        	if tonumber(sep[2]) == 0 then
+        		table.insert(zombieSpawnsEnabled, true)
+        	else
+        		table.insert(zombieSpawnsEnabled, false)
+        	end
+        end
+    end
+    if #zombieSpawns == 0 then
+    	print("\tIsolation: This map has no zombie spawns!")
+    end
+end
 
 function UpdatePlayers()
 	for _,p in pairs(player.GetAll()) do

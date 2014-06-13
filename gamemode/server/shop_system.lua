@@ -43,8 +43,10 @@ function WeaponShop(shop, ply)
 end
 
 function DoorShopInfo(ent, shop, ply)
-    local num = shop[3]
-    local shopDoorPrice = tonumber(shop[4])
+    local doorNum = shop[3]
+    local num1 = shop[4]
+    local num2 = shop[5]
+    local shopDoorPrice = tonumber(shop[6])
     if !ent:GetNWBool("Baught", false) then
         ply:SetNWString("Info", "Press F To Buy Door For $" .. tostring(shopDoorPrice))
         ply:SetNWBool("ShowInfo", true)
@@ -52,8 +54,10 @@ function DoorShopInfo(ent, shop, ply)
 end
 
 function DoorShop(ent, shop, ply)
-    local number = shop[3]
-    local shopPrice = tonumber(shop[4])
+    local doorNum = shop[3]
+    local num1 = shop[4]
+    local num2 = shop[5]
+    local shopDoorPrice = tonumber(shop[6])
     if !ent:GetNWBool("Baught", false) and ply:GetNWInt("Cash") >= shopPrice then
         ent:SetNWBool("Baught", true)
         for _, d in pairs(ents.FindByName(ent:GetName())) do
