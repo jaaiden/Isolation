@@ -44,9 +44,8 @@ end
 
 function DoorShopInfo(ent, shop, ply)
     local doorNum = shop[3]
-    local num1 = shop[4]
-    local num2 = shop[5]
-    local shopDoorPrice = tonumber(shop[6])
+    local num = shop[4]
+    local shopDoorPrice = tonumber(shop[5])
     if !ent:GetNWBool("Baught", false) then
         ply:SetNWString("Info", "Press F To Buy Door For $" .. tostring(shopDoorPrice))
         ply:SetNWBool("ShowInfo", true)
@@ -55,16 +54,12 @@ end
 
 function DoorShop(ent, shop, ply)
     local doorNum = shop[3]
-    local num1 = shop[4]
-    local num2 = shop[5]
-    local shopDoorPrice = tonumber(shop[6])
-    if !ent:GetNWBool("Baught", false) and ply:GetNWInt("Cash") >= shopPrice then
-        ent:SetNWBool("Baught", true)
-        for _, d in pairs(ents.FindByName(ent:GetName())) do
-            d:SetNWBool("Baught", true)
-        end
-        ply:SetNWInt("Cash", ply:GetNWInt("Cash") - shopPrice)
-        for _, d in pairs(ents.FindByName("door " .. number)) do
+    local num = shop[4]
+    local shopDoorPrice = tonumber(shop[5])
+    if not ZombieSpawnEnabled(num1) and ply:GetNWInt("Cash") >= shopPrice then
+        SetZombieSpawnEnabled(num1, true)
+        ply:SetNWInt("Cash", ply:GetNWInt("Cash") - shopDoorPrice)
+        for _, d in pairs(ents.FindByName("door " .. doorNum)) do
             d:Fire("unlock", "", 0)
             d:Fire("open", "", 0)
             d:Fire("lock", "", 0)
