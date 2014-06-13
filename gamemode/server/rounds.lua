@@ -57,7 +57,7 @@ function NextRound(inc)
 		end
 	end
 	timer.Create("ZombieSpawn", cMaxSpawnTime, maxZombies, function ()
-		zombie = ents.Create("npc_zombie")
+		zombie = ents.Create("npc_fastzombie")
 		zombie:SetHealth(health * round)
 		zSpawn = zombieSpawns[math.random(1, #zombieSpawns)]
 		zombie:SetPos(zSpawn:GetPos())
@@ -82,7 +82,7 @@ function InitGame(prepTime, exp, initZombies, minSpwnTime, maxSpwnTime, zHealth,
 	moneyPerKill = mPK
 	maxZombies = 0
 	zombies = 0
-	zombieSpawns = ents.FindByName("ZombieSpawn Start")
+	zombieSpawns = ents.FindByName("ZombieSpawn 00")
 	preperation = true
 	timer.Create("Preperation", 1, preperationTime, function()
 		UpdatePlayers()
@@ -98,7 +98,7 @@ function InitGame(prepTime, exp, initZombies, minSpwnTime, maxSpwnTime, zHealth,
 end
 
 function EndGame()
-	for _, z in pairs(ents.FindByClass("npc_zombie")) do
+	for _, z in pairs(ents.FindByClass("npc_fastzombie")) do
 		z:Remove()
 	end
 	for _, p in pairs(player.GetAll()) do
@@ -120,7 +120,7 @@ function EndGame()
 end
 
 hook.Add("OnNPCKilled", "Zombie Update", function (npc, attacker, inflictor)
-	if npc:Classify() == CLASS_ZOMBIE then
+	if npc:GetClass() == "npc_fastzombie" then
 		zombies = zombies - 1
 		if attacker:IsPlayer() then
 			attacker:SetNWInt("Kills", attacker:GetNWInt("Kills") + 1)
@@ -142,7 +142,7 @@ hook.Add("OnNPCKilled", "Zombie Update", function (npc, attacker, inflictor)
 				end
 			end)
 		end
-		for _, h in pairs(ents.FindByClass("npc_headcrab")) do
+		for _, h in pairs(ents.FindByClass("npc_headcrab_fast")) do
 			h:Remove()
 		end
 		UpdatePlayers()
