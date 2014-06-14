@@ -219,6 +219,7 @@ end)
 hook.Add("EntityTakeDamage", "Cash", function (target, dmginfo)
 	if target:GetClass() == "npc_zombie" then
 		dmginfo:GetAttacker():SetNWInt("Cash", dmginfo:GetAttacker():GetNWInt("Cash") + moneyPerKill)
+		dmginfo:GetAttacker():SetNWInt("TotalMoney", dmginfo:GetAttacker():GetNWInt("TotalMoney")+dmginfo:GetAttacker():GetNWInt("Cash"))
 	end
 end)
 

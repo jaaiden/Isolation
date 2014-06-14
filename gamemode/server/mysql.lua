@@ -52,6 +52,10 @@ function GetPlayerData(data, ply)
 	ply:SetNWInt("SkillPoints", spoints)
 	ply:SetNWInt("Exp", exp)
 	ply:SetNWInt("MaxExp", maxexp)
+
+	ply:SetNWInt("TotalKills", row['kills'])
+	ply:SetNWInt("TotalDeaths", row['deaths'])
+	ply:SetNWInt("TotalMoney", row['totalmoney'])
 end
 
 function ply:SaveData()
@@ -61,7 +65,11 @@ function ply:SaveData()
 	local exp = self:GetNWInt("Exp")
 	local maxexp = self:GetNWInt("MaxExp")
 
-	local qry = db:query("UPDATE stats SET level='" .. level .. "', spoints='" .. spoints .. "', exp='" .. exp .. "', maxexp='" .. maxexp .. "' WHERE steamid='" .. steamid .. "'")
+	local kills = ply:GetNWInt("TotalKills") + ply:GetNWInt("Kills")
+	local deaths = ply:GetNWInt("TotalDeaths") + ply:GetNWInt("Downs")
+	local money - ply:GetNWInt("TotalMoney")
+
+	local qry = db:query("UPDATE stats SET level='" .. level .. "', spoints='" .. spoints .. "', exp='" .. exp .. "', maxexp='" .. maxexp .. "', kills='" .. kills .. "', deaths='" .. deaths .. "', totalmoney='" .. money .. "' WHERE steamid='" .. steamid .. "'")
 
 	function qry:onSuccess(data)
 		PrintTable(data)
