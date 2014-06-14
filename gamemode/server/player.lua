@@ -17,7 +17,6 @@ function LevelUp(ply)
     ply:SetNWInt("MaxExp", ply:GetNWInt("MaxExp") + math.Round(ply:GetNWInt("MaxExp") / 4))
     ply:SetNWInt("SkillPoints", ply:GetNWInt("SkillPoints") + 1)
     ply:SaveData()
-
     for _,v in pairs(player.GetAll()) do
         v:ChatPrint(ply:Nick() .. " has reached Level " .. ply:GetNWInt("Level") .. "!")
     end
@@ -63,8 +62,7 @@ function GM:PlayerLoadout(ply)
         hands:Spawn()
     end
 
-    local loadoutcount = #cInitLoadout
-    for i = 1, loadoutcount, 3 do
+    for i = 1, #cInitLoadout, 3 do
         ply:Give(cInitLoadout[i])
         if cInitLoadout[i + 2] > 0 then
             ply:GiveAmmo(cInitLoadout[i + 2], cInitLoadout[i + 1], true)

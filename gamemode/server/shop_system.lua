@@ -1,18 +1,42 @@
+doorStatus = {}
+shops = {}
+
 function FindShopLocations()
-    local shops = {}
+    shops = {}
     for _, v in pairs(ents.GetAll()) do
         local sep = string.Explode(" ", v:GetName())
         if sep[1] == "shop" then
             table.insert(shops, v)
+            if sep[2] == "door" then
+                v:Fire("lock", "", 0)
+                table.insert(doorStatus, tonumber(sep[3]))
+                table.insert(doorStatus, false)
+            end
         end
     end
-    return shops
+end
+
+function SetDoorStatus(num, bool)
+    for i = 1, #doorStatus, 2 do
+        if doorStatus[i] == num then
+            doorStatus[i + 1] = bool
+        end
+    end
+end
+
+function GetDoorStatus(num)
+    for i = 1, #doorStatus, 2 do
+        if doorStatus[i] == num then
+            return doorStatus[i + 1]
+        end
+    end
+    return false
 end
 
 function WeaponShopInfo(shop, ply)
-    local shopGun = shop[3]
-    local shopGunPrice = tonumber(shop[4])
-    local shopAmmoPrice = tonumber(shop[5])
+    shopGun = shop[3]
+    shopGunPrice = tonumber(shop[4])
+    shopAmmoPrice = tonumber(shop[5])
     if !ply:HasWeapon(shopGun) then
         ply:SetNWString("Info", tostring("Press F To Buy " .. weapons.Get(shopGun)["PrintName"]) .. " For $" .. shopGunPrice)
         ply:SetNWBool("ShowInfo", true)
@@ -23,9 +47,9 @@ function WeaponShopInfo(shop, ply)
 end
 
 function WeaponShop(shop, ply)
-    local shopGun = shop[3]
-    local shopPrice = tonumber(shop[4])
-    local shopAmmo = tonumber(shop[5])
+    shopGun = shop[3]
+    shopPrice = tonumber(shop[4])
+    shopAmmo = tonumber(shop[5])
     if !ply:HasWeapon(shopGun) and ply:GetNWInt("Cash") >= shopPrice then
         ply:SetNWInt("Cash", ply:GetNWInt("Cash") - shopPrice)
         ply:Give(shopGun)
@@ -46,7 +70,7 @@ function DoorShopInfo(ent, shop, ply)
     local doorNum = shop[3]
     local num = shop[4]
     local shopDoorPrice = tonumber(shop[5])
-    if !ent:GetNWBool("Baught", false) then
+    if not GetDoorStatus(doorNum) then
         ply:SetNWString("Info", "Press F To Buy Door For $" .. tostring(shopDoorPrice))
         ply:SetNWBool("ShowInfo", true)
     end
@@ -56,8 +80,10 @@ function DoorShop(ent, shop, ply)
     local doorNum = shop[3]
     local num = shop[4]
     local shopDoorPrice = tonumber(shop[5])
-    if not ZombieSpawnEnabled(num1) and ply:GetNWInt("Cash") >= shopPrice then
-        SetZombieSpawnEnabled(num1, true)
+    if not GetDoorStatus(doorNum) and ply:GetNWInt("Cash") >= shopDoorPrice then
+        print(doorNum)
+        print(GetDoorStatus(doorNum))
+        SetDoorStatus(doorNum, true)
         ply:SetNWInt("Cash", ply:GetNWInt("Cash") - shopDoorPrice)
         for _, d in pairs(ents.FindByName("door " .. doorNum)) do
             d:Fire("unlock", "", 0)
@@ -68,7 +94,6 @@ function DoorShop(ent, shop, ply)
 end
 
 function ShowShopInfo()
-    local shops = FindShopLocations()
     local allPlys = player.GetAll()
     for _, s in pairs(shops) do
         plys = ents.FindInBox(s:LocalToWorld(s:OBBMins()), s:LocalToWorld(s:OBBMaxs()))
@@ -96,7 +121,6 @@ end
 
 hook.Add("PlayerButtonDown", "GunShop", function (ply, key)
     if key == KEY_F then
-        local shops = FindShopLocations()
         for _, s in pairs(shops) do
             plys = ents.FindInBox(s:LocalToWorld(s:OBBMins()), s:LocalToWorld(s:OBBMaxs()))
             if table.HasValue(plys, ply) then

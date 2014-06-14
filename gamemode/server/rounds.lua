@@ -16,26 +16,27 @@ function FindZombieSpawns()
 	zombieSpawnsEnabled = {}
 	zombieSpawns = {}
     for _, v in pairs(ents.GetAll()) do
-        local sep = string.Explode(" ", v:GetName())
+        sep = string.Explode(" ", v:GetName())
         if sep[1] == "ZombieSpawn" then
             table.insert(zombieSpawns, v)
-        end
-        if not table.HasValue(tonumber(sep[2])) then
+            if not table.HasValue(zombieSpawnsEnabled, tonumber(sep[2])) then
         		table.insert(zombieSpawnsEnabled, tonumber(sep[2]))
-        	if tonumber(sep[2]) == 0 then
-        		table.insert(zombieSpawnsEnabled, true)
-        	else
-        		table.insert(zombieSpawnsEnabled, false)
+		    	if tonumber(sep[2]) == 0 then
+		    		table.insert(zombieSpawnsEnabled, true)
+		    	else
+		    		table.insert(zombieSpawnsEnabled, false)
+		    	end
         	end
         end
     end
-    return table.Empty(zombieSpawns)
+    return #zombieSpawns == 0
 end
 
 function SetZombieSpawnEnabled(num, bool)
 	for i = 1, #zombieSpawnsEnabled, 2 do
 		if zombieSpawnsEnabled[i] == num then
 			zombieSpawnsEnabled[i + 1] = bool
+			return
 		end
 	end
 end
@@ -73,7 +74,7 @@ function UpdatePlayers()
 end
 
 function ZombieCleanup()
-	for _, z in pairs(ents.FindByClass("npc_fastzombie")) do
+	for _, z in pairs(ents.FindByClass("npc_zombie")) do
 		z:Remove()
 	end
 end
@@ -112,7 +113,7 @@ function NextRound(inc)
 		end
 	end
 	timer.Create("ZombieSpawn", cMaxSpawnTime, maxZombies, function ()
-		zombie = ents.Create("npc_fastzombie")
+		zombie = ents.Create("npc_zombie")
 		zombie:SetHealth(health * round)
 		zSpawn = RandomSpawn()
 		zombie:SetPos(zSpawn:GetPos())
@@ -129,6 +130,10 @@ function InitGame(prepTime, exp, initZombies, minSpwnTime, maxSpwnTime, zHealth,
 	for _,p in pairs(player.GetAll()) do
 		p:ChatPrint("Game initialized, starting in " .. preperationTime .. " seconds!")
 	end
+	FindShopLocations()
+	if FindZombieSpawns() then
+		return
+	end
 	preperationTime = prepTime
 	experience = exp
 	minSpawnTime = minSpwnTime
@@ -138,9 +143,6 @@ function InitGame(prepTime, exp, initZombies, minSpwnTime, maxSpwnTime, zHealth,
 	maxZombies = 0
 	zombies = 0
 	round = 0
-	if FindZombieSpawns() then
-		return
-	end
 	preperation = true
 	timer.Create("Preperation", 1, preperationTime, function()
 		UpdatePlayers()
@@ -157,6 +159,11 @@ end
 
 function EndGame()
 	ZombieCleanup()
+	for _, d in pairs(ents.FindByClass("prop_door_rotating")) do
+        d:Fire("unlock", "", 0)
+        d:Fire("close", "", 0)
+        d:Fire("lock", "", 0)
+    end
 	for _, p in pairs(player.GetAll()) do
 		p:SetNWInt("Cash", cStartMoney)
 	    p:SetNWInt("Kills", 0)
@@ -176,7 +183,7 @@ function EndGame()
 end
 
 hook.Add("OnNPCKilled", "Zombie Update", function (npc, attacker, inflictor)
-	if npc:GetClass() == "npc_fastzombie" then
+	if npc:GetClass() == "npc_zombie" then
 		zombies = zombies - 1
 		if attacker:IsPlayer() then
 			attacker:SetNWInt("Kills", attacker:GetNWInt("Kills") + 1)
@@ -198,7 +205,7 @@ hook.Add("OnNPCKilled", "Zombie Update", function (npc, attacker, inflictor)
 				end
 			end)
 		end
-		for _, h in pairs(ents.FindByClass("npc_headcrab_fast")) do
+		for _, h in pairs(ents.FindByClass("npc_headcrab")) do
 			h:Remove()
 		end
 		UpdatePlayers()
@@ -206,7 +213,7 @@ hook.Add("OnNPCKilled", "Zombie Update", function (npc, attacker, inflictor)
 end)
 
 hook.Add("EntityTakeDamage", "Cash", function (target, dmginfo)
-	if target:GetClass() == "npc_fastzombie" then
+	if target:GetClass() == "npc_zombie" then
 		dmginfo:GetAttacker():SetNWInt("Cash", dmginfo:GetAttacker():GetNWInt("Cash") + moneyPerKill)
 	end
 end)
@@ -214,7 +221,7 @@ end)
 timer.Create("ZombieUpdate", 15, 0, function ()
 	for _, z in pairs(ents.FindByClass("npc_zombie")) do
 		ply = ClosestPlayer(z)
-		z:SetLastPosition(ply)
+		z:SetLastPosition(ply:GetPos())
 		z:SetEnemy(ply)
 		z:UpdateEnemyMemory(ply, ply:GetPos())
 		z:SetSchedule(SCHED_CHASE_ENEMY)
