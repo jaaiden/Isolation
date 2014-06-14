@@ -5,7 +5,7 @@ require("mysqloo")
 local ply = FindMetaTable("Player")
 
 -- Connect to Global Database
-local db = mysqloo.connect("nyaa-nyaa.com", "isolation_gm", "3xs94axY7LC8WLhP", "isolation", 3306)
+local db = mysqloo.connect("nyaa-nyaa.com", "isolation_stats", "CEpQxR986tE42Z9G", "isolation_lb", 3306)
 
 local oldPrint = print
 local function print(s)
@@ -38,49 +38,42 @@ function GetPlayerData(data, ply)
 	local steamid = row['steamid']
 	local level = row['level']
 	local spoints = row['spoints']
+	local exp = row['exp']
+	local maxexp = row['maxexp']
 
 	print("Retrieving info for " .. ply:Nick() .. "...")
 	print("SteamID -> " .. tostring(steamid))
 	print("Level -> " .. tostring(level))
 	print("SPoints -> " .. tostring(spoints))
+	print("Exp -> " .. tostring(exp))
+	print("MaxExp -> " .. tostring(maxexp))
 
 	ply:SetNWInt("Level", level)
 	ply:SetNWInt("SkillPoints", spoints)
+	ply:SetNWInt("Exp", exp)
+	ply:SetNWInt("MaxExp", maxexp)
 end
 
 function ply:SaveData()
 	local steamid = self:SteamID()
 	local level = self:GetNWInt("Level")
-	local spoitns = self:GetNWInt("SkillPoints")
+	local spoints = self:GetNWInt("SkillPoints")
+	local exp = self:GetNWInt("Exp")
+	local maxexp = self:GetNWInt("MaxExp")
 
-	local qry = db:query("UPDATE stats SET level='" .. level .. "', spoints='" .. spoints .. "' WHERE steamid='" .. steamid .. "'")
-	qry:start()
+	local qry = db:query("UPDATE stats SET level='" .. level .. "', spoints='" .. spoints .. "', exp='" .. exp .. "', maxexp='" .. maxexp .. "' WHERE steamid='" .. steamid .. "'")
 
 	function qry:onSuccess(data)
 		PrintTable(data)
 		print("Saved Player data.")
+		self:ChatPrint("Saved data.")
 	end
 	function qry:onError(err, sql)
 		print("Count not save data.\n\t[Error]: " .. err .. "\n\t[Code]: " .. sql)
+		self:ChatPrint("Could not save data! D:")
 	end
-	-- self:ChatPrint("Saved data.")
-end
 
-function ply:New()
-	local id = self:SteamID()
-	local qry = db:query("INSERT INTO stats (`steamid`, `level`, `spoints`) VALUES ('" .. self:SteamID() .. "', '" .. self:GetNWInt("Level") .. "', '" .. self:GetNWInt("SkillPoints") .. "')")
 	qry:start()
-
-	function qry:onSuccess()
-		print("Created row for new player.")
-	end
-	
-	function qry:onError(err, sql)
-		print("Could not create new row for player.\n\t[Error]: " .. err .. "\n\t[Code]: " .. sql)
-	end
-	
-	ply:SaveData()
-	ply:CheckDB()
 end
 
 function ply:CheckDB()
@@ -100,13 +93,38 @@ function ply:CheckDB()
 	end
 end
 
+function ply:New()
+	self:ChatPrint("[IsolationDB] >> Creating new field...")
+	local id = self:SteamID()
+	qry = db:query("INSERT INTO stats (`steamid`, `level`, `spoints`, `exp`, `maxexp`) VALUES ('" .. self:SteamID() .. "', '" .. self:GetNWInt("Level") .. "', '" .. self:GetNWInt("SkillPoints") .. "', '" .. self:GetNWInt("Exp") .. "', '" .. self:GetNWInt("MaxExp") .. "')")
+	qry:start()
+
+	function qry:onSuccess()
+		print("Created row for new player.")
+	end
+	
+	function qry:onError(err, sql)
+		print("Could not create new row for player.\n\t[Error]: " .. err .. "\n\t[Code]: " .. sql)
+	end
+	
+	self:ChatPrint("[IsolationDB] >> Created.")
+	self:SaveData()
+	self:CheckDB()
+end
+
 function InitSpawn(ply)
 	timer.Create("SaveDBInfo", 300, 0, function()
+		ply:ChatPrint("[IsolationDB] >> Saving player info...")
 		ply:Save()
+		ply:ChatPrint("[IsolationDB] >> Saved!")
 	end)
 	ply:CheckDB()
 end
 hook.Add("PlayerAuthed", "LoadDBData", InitSpawn)
+
+hook.Add("PlayerInitialSpawn", "DBAnnounce", function(ply)
+	ply:ChatPrint("The Isolation Global DB is enabled!")
+end)
 
 concommand.Add("isolation_savedata", function(ply, cmd, args)
 	if ply:IsAdmin() then
