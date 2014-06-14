@@ -2,6 +2,7 @@ doorStatus = {}
 shops = {}
 
 function FindShopLocations()
+    doorStatus = {}
     shops = {}
     for _, v in pairs(ents.GetAll()) do
         local sep = string.Explode(" ", v:GetName())
@@ -9,8 +10,7 @@ function FindShopLocations()
             table.insert(shops, v)
             if sep[2] == "door" then
                 v:Fire("lock", "", 0)
-                table.insert(doorStatus, tonumber(sep[3]))
-                table.insert(doorStatus, false)
+                table.insert(doorStatus, {tonumber(sep[3]), false})
             end
         end
     end
@@ -18,16 +18,16 @@ end
 
 function SetDoorStatus(num, bool)
     for i = 1, #doorStatus, 2 do
-        if doorStatus[i] == num then
-            doorStatus[i + 1] = bool
+        if doorStatus[i][1] == num then
+            doorStatus[i][2] = bool
         end
     end
 end
 
 function GetDoorStatus(num)
     for i = 1, #doorStatus, 2 do
-        if doorStatus[i] == num then
-            return doorStatus[i + 1]
+        if doorStatus[i][1] == num then
+            return doorStatus[i][2]
         end
     end
     return false
