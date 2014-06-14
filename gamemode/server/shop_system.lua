@@ -17,17 +17,22 @@ function FindShopLocations()
 end
 
 function SetDoorStatus(num, bool)
-    for i = 1, #doorStatus, 2 do
-        if doorStatus[i] == num then
-            doorStatus[i + 1] = bool
+    for k,v in pairs(doorStatus) do
+        if type(v) == "number" then
+            if v == num then
+                doorStatus[k+1] = bool
+                return
+            end
         end
     end
 end
 
 function GetDoorStatus(num)
-    for i = 1, #doorStatus, 2 do
-        if doorStatus[i] == num then
-            return doorStatus[i + 1]
+    for k,v in pairs(doorStatus) do
+        if type(v) == "number" then
+            if v == num then
+                return doorStatus[k+1]
+            end
         end
     end
     return false
