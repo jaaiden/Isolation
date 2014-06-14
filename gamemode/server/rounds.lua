@@ -33,18 +33,22 @@ function FindZombieSpawns()
 end
 
 function SetZombieSpawnEnabled(num, bool)
-	for i = 1, #zombieSpawnsEnabled, 2 do
-		if zombieSpawnsEnabled[i] == num then
-			zombieSpawnsEnabled[i + 1] = bool
-			return
+	for k,v in pairs(zombieSpawnsEnabled) do
+		if type(v) == "number" then
+			if v == num then
+				zombieSpawnsEnabled[k+1] = bool
+				return
+			end
 		end
 	end
 end
 
 function ZombieSpawnEnabled(num)
-	for i = 1, #zombieSpawnsEnabled, 2 do
-		if zombieSpawnsEnabled[i] == num then
-			return zombieSpawnsEnabled[i + 1]
+	for k,v in pairs(zombieSpawnsEnabled) do
+		if type(v) == "number" then
+			if v == num then
+				return zombieSpawnsEnabled[k+1]
+			end
 		end
 	end
 	return false
@@ -215,6 +219,7 @@ end)
 hook.Add("EntityTakeDamage", "Cash", function (target, dmginfo)
 	if target:GetClass() == "npc_zombie" then
 		dmginfo:GetAttacker():SetNWInt("Cash", dmginfo:GetAttacker():GetNWInt("Cash") + moneyPerKill)
+		dmginfo:GetAttacker():SetNWInt("TotalMoney", dmginfo:GetAttacker():GetNWInt("TotalMoney")+dmginfo:GetAttacker():GetNWInt("Cash"))
 	end
 end)
 
