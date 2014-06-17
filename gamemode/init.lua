@@ -7,8 +7,8 @@ include("shared.lua")
 include("resources/config.lua")
 include("server/admin/extra.lua");
 include("server/admin/commands.lua")
-include("server/shop_system.lua")
 include("server/rounds.lua")
+include("server/shop_system.lua")
 include("server/player.lua")
 include("resources/playerdata.lua")
 
@@ -89,3 +89,16 @@ end
 		end
 	end
 end*/
+
+hook.Add("PlayerNoClip", "FeelFreeToTurnItOff", function(ply, desiredState)
+	/*if desiredState then
+		if ply:IsSuperAdmin() then
+			return true
+		else
+			return false
+		end
+	else
+		return true
+	end*/
+	return false
+end)

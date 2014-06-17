@@ -1,150 +1,174 @@
-doorStatus = {}
-shops = {}
+local ready = false
 
-function FindShopLocations()
-    doorStatus = {}
-    shops = {}
-    for _, v in pairs(ents.GetAll()) do
-        local sep = string.Explode(" ", v:GetName())
-        if sep[1] == "shop" then
-            table.insert(shops, v)
-            if sep[2] == "door" then
-                v:Fire("lock", "", 0)
-                table.insert(doorStatus, {tonumber(sep[3]), false})
-            end
+function InitDoors()
+    for _, s in pairs(ents.FindByClass("prop_door_rotating")) do
+        if string.StartWith(s:GetName(), "door") then
+            s:Fire("unlock", "", 0)
+            s:Fire("close", "", 0)
+            s:Fire("lock", "", 0)
+            s.opened = false
+        end
+    end
+    ready = true
+end
+
+function FindShops()
+    local shops = {}
+    for _, s in pairs(ents.GetAll()) do
+        local split = string.Explode(" ", s:GetName())
+        if split[1] == "shop" then
+            table.insert(shops, s)
+        end
+    end
+    return shops
+end
+
+function SetDoorOpened(num, enable)
+    for _, s in pairs(ents.FindByClass("prop_door_rotating")) do
+        local sep = string.Explode(" ", s:GetName())
+        if tonumber(sep[2]) == num then
+            s.opened = enable
         end
     end
 end
 
-function SetDoorStatus(num, bool)
-    for i = 1, #doorStatus, 2 do
-        if doorStatus[i][1] == num then
-            doorStatus[i][2] = bool
-        end
-    end
-end
-
-function GetDoorStatus(num)
-    for i = 1, #doorStatus, 2 do
-        if doorStatus[i][1] == num then
-            return doorStatus[i][2]
+function IsDoorOpened(num)
+    for _, s in pairs(ents.FindByClass("prop_door_rotating")) do
+        local sep = string.Explode(" ", s:GetName())
+        if tonumber(sep[2]) == num then
+            return s.opened
         end
     end
     return false
 end
 
-function WeaponShopInfo(shop, ply)
-    shopGun = shop[3]
-    shopGunPrice = tonumber(shop[4])
-    shopAmmoPrice = tonumber(shop[5])
-    if !ply:HasWeapon(shopGun) then
-        ply:SetNWString("Info", tostring("Press F To Buy " .. weapons.Get(shopGun)["PrintName"]) .. " For $" .. shopGunPrice)
+function DoorInfo(info, ply)
+    ply:SetNWBool("ShowInfo", true)
+    ply:SetNWString("Info", "Press F to open this door for $" .. info[5])
+end
+
+function WeaponInfo(info, ply)
+    weaponClass = info[3]
+    weaponCost = tonumber(info[4])
+    ammoCost = tonumber(info[5])
+    upgradedAmmoCost = tonumber(info[6])
+    if !ply:HasWeapon(weaponClass) then
         ply:SetNWBool("ShowInfo", true)
-    else
-        ply:SetNWString("Info", tostring("Press F To Buy " .. weapons.Get(shopGun)["PrintName"]) .. " Ammo For $" .. shopAmmoPrice)
+        ply:SetNWString("Info", "Press F to buy the " .. weapons.Get(weaponClass).PrintName .. " for $" .. info[4])
+        return
+    end
+    if ply:HasWeapon(weaponClass) then
         ply:SetNWBool("ShowInfo", true)
+        ply:SetNWString("Info", "Press F to buy " .. weapons.Get(weaponClass).PrintName .. " ammo for $" .. info[5])
+        return
     end
-end
-
-function WeaponShop(shop, ply)
-    shopGun = shop[3]
-    shopPrice = tonumber(shop[4])
-    shopAmmo = tonumber(shop[5])
-    if !ply:HasWeapon(shopGun) and ply:GetNWInt("Cash") >= shopPrice then
-        ply:SetNWInt("Cash", ply:GetNWInt("Cash") - shopPrice)
-        ply:Give(shopGun)
-        ply:SelectWeapon(shopGun)
-        ply:ChatPrint("Bought a " .. shopGun .. " for $" .. shopPrice .. ".")
-    elseif !ply:HasWeapon(shopGun) and ply:GetNWInt("Cash") < shopPrice then
-        ply:ChatPrint("You don't have enough money to purchase this weapon!")
-    elseif ply:HasWeapon(shopGun) and ply:GetNWInt("Cash") >= shopAmmo then
-        ply:SetNWInt("Cash", ply:GetNWInt("Cash") - shopAmmo)
-        ply:GiveAmmo(300, ply:GetWeapon(shopGun):GetPrimaryAmmoType())
-        ply:ChatPrint("Bought " .. shopGun .. " ammo for $" .. shopAmmo .. ".")
-    elseif ply:HasWeapon(shopGun) and ply:GetNWInt("Cash") <= shopAmmo then
-        ply:ChatPrint("You don't have enough money to purchase ammo for this weapon!")
-    end
-end
-
-function DoorShopInfo(ent, shop, ply)
-    local doorNum = shop[3]
-    local num = shop[4]
-    local shopDoorPrice = tonumber(shop[5])
-    if not GetDoorStatus(doorNum) then
-        ply:SetNWString("Info", "Press F To Buy Door For $" .. tostring(shopDoorPrice))
+    if ply:HasWeapon(weaponClass .. "_upgraded") and ply:GetNWInt("Cash") >= upgradedAmmoCost then
         ply:SetNWBool("ShowInfo", true)
+        ply:SetNWString("Info", "Press F to buy upgraded " .. weapons.Get(weaponClass .. "_upgraded").PrintName .. " ammo for $" .. info[6])
+        return
     end
 end
 
-function DoorShop(ent, shop, ply)
-    local doorNum = shop[3]
-    local num = shop[4]
-    local shopDoorPrice = tonumber(shop[5])
-    if not GetDoorStatus(doorNum) and ply:GetNWInt("Cash") >= shopDoorPrice then
-        print(doorNum)
-        print(GetDoorStatus(doorNum))
-        SetDoorStatus(doorNum, true)
-        ply:SetNWInt("Cash", ply:GetNWInt("Cash") - shopDoorPrice)
-        for _, d in pairs(ents.FindByName("door " .. doorNum)) do
-            d:Fire("unlock", "", 0)
-            d:Fire("open", "", 0)
-            d:Fire("lock", "", 0)
-        end
-    end
-end
-
-function ShowShopInfo()
-    local allPlys = player.GetAll()
-    for _, s in pairs(shops) do
-        plys = ents.FindInBox(s:LocalToWorld(s:OBBMins()), s:LocalToWorld(s:OBBMaxs()))
-        for _, ply in pairs(plys) do
-            if ply:IsPlayer() then
-                if table.HasValue(allPlys, ply) then
-                    table.RemoveByValue(allPlys, ply)
-                end
-                local shopName = string.Explode(" ", s:GetName())
-                local shopType = shopName[2]
-                if shopType == "weapon" then
-                    WeaponShopInfo(shopName, ply)
-                end
-                if shopType == "door" then
-                    DoorShopInfo(s, shopName, ply)
-                end
+function DoorBuy(ent, info, ply)
+    local doorNum = tonumber(info[3])
+    local spawnNum = tonumber(info[4])
+    if !IsDoorOpened(doorNum) then
+        local cost = tonumber(info[5])
+        if ply:GetNWInt("Cash") >= cost then
+            ent:EmitSound("isolation/buy.wav", 500, 100)
+            ply:SetNWInt("Cash", ply:GetNWInt("Cash") - cost)
+            ply:SetNWBool("ShowInfo", false)
+            ply:SetNWString("Info", "")
+            ply.shopEntity = nil
+            SetZombieSpawnsEnabled(spawnNum, true)
+            for _, s in pairs(ents.FindByName("door " .. doorNum)) do
+                s.opened = true
+                s:Fire("unlock", "", 0)
+                s:Fire("open", "", 0)
+                s:Fire("lock", "", 0)
             end
         end
     end
-    for _, ply in pairs(allPlys) do
-        ply:SetNWString("Info", "")
-        ply:SetNWBool("ShowInfo", false)
+end
+
+function WeaponBuy(ent, info, ply)
+    weaponClass = info[3]
+    weaponCost = tonumber(info[4])
+    ammoCost = tonumber(info[5])
+    upgradedAmmoCost = tonumber(info[6])
+    if !ply:HasWeapon(weaponClass) and ply:GetNWInt("Cash") >= weaponCost then
+        ent:EmitSound("isolation/buy.wav", 500, 100)
+        ply:SetNWInt("Cash", ply:GetNWInt("Cash") - weaponCost)
+        if ply:GetActiveWeapon() != nil and #ply:GetWeapons() == 3 then
+            ply:StripWeapon(ply:GetActiveWeapon():GetClass())
+        end
+        ply:Give(weaponClass)
+        ply:SelectWeapon(weaponClass)
+        return
+    end
+    if ply:HasWeapon(weaponClass) and ply:GetNWInt("Cash") >= ammoCost then
+        ent:EmitSound("isolation/buy.wav", 500, 100)
+        ply:SetNWInt("Cash", ply:GetNWInt("Cash") - ammoCost)
+        ply:GiveAmmo(250, ply:GetActiveWeapon():GetPrimaryAmmoType(), true)
+        return
+    end
+    if ply:HasWeapon(weaponClass .. "_upgraded") and ply:GetNWInt("Cash") >= upgradedAmmoCost then
+        ent:EmitSound("isolation/buy.wav", 500, 100)
+        ply:SetNWInt("Cash", ply:GetNWInt("Cash") - upgradedAmmoCost)
+        ply:GiveAmmo(250, ply:GetActiveWeapon():GetPrimaryAmmoType(), true)
+        return
     end
 end
 
-hook.Add("PlayerButtonDown", "GunShop", function (ply, key)
-    if key == KEY_F then
-        for _, s in pairs(shops) do
-            plys = ents.FindInBox(s:LocalToWorld(s:OBBMins()), s:LocalToWorld(s:OBBMaxs()))
-            if table.HasValue(plys, ply) then
-                local shopName = string.Explode(" ", s:GetName())
-                local shopType = shopName[2]
-                if shopType == "weapon" then
-                    WeaponShop(shopName, ply)
+hook.Add("Think", "ShopInfo", function()
+    if ready then
+        local outsidePlys = player.GetAll()
+        local shops = FindShops()
+        if #shops > 0 then
+            for _, s in pairs(shops) do
+                local split = string.Explode(" ", s:GetName())
+                local shopType = split[2]
+                local insidePlys = ents.FindInBox(s:LocalToWorld(s:OBBMins()), s:LocalToWorld(s:OBBMaxs()))
+                for _, p in pairs(insidePlys) do
+                    if p:IsPlayer() then
+                        if table.HasValue(outsidePlys, p) then
+                            table.RemoveByValue(outsidePlys, p)
+                        end
+                        p.shopEntity = s
+                        if shopType == "door" then
+                            local doorNum = tonumber(split[3])
+                            if !IsDoorOpened(doorNum) then
+                                DoorInfo(split, p)
+                            else
+                                if table.HasValue(outsidePlys, p) then
+                                    table.RemoveByValue(outsidePlys, p)
+                                end
+                            end
+                        elseif shopType == "weapon" then
+                            WeaponInfo(split, p)
+                        end
+                    end
                 end
-                if shopType == "door" then
-                    DoorShop(s, shopName, ply)
-                end
+            end
+            for _, p in pairs(outsidePlys) do
+                p.shopEntity = nil
+                p:SetNWBool("ShowInfo", false)
+                p:SetNWString("Info", "")
             end
         end
     end
 end)
 
-hook.Add("Tick", "Shop", function ()
-    ShowShopInfo()
-end)
-
-timer.Create("Duration", 1, 0, function ()
-    for _, p in pairs(player.GetAll()) do
-        if p.duration > 0 then
-            p.duration = p.duration - 1
+hook.Add("PlayerButtonDown", "ShopBuy", function(ply, btn)
+    if btn == KEY_F then
+        if ply:GetNWBool("ShowInfo") and ply.shopEntity != nil then
+            local split = string.Explode(" ", ply.shopEntity:GetName())
+            local shopType = split[2]
+            if shopType == "door" then
+                DoorBuy(ply.shopEntity, split, ply)
+            elseif shopType == "weapon" then
+                WeaponBuy(ply.shopEntity, split, ply)
+            end
         end
     end
 end)

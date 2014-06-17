@@ -23,3 +23,8 @@ concommand.Add("is_throwgrenade", function(ply, cmd, args, full)
 	    end
     end
 end)
+
+concommand.Add("is_disablehud", function(ply, cmd, args, full)
+	hudDisabled = tobool(args[1])
+	avatar:SetVisible(!tobool(args[1]))
+end)

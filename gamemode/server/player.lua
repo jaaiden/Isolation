@@ -5,7 +5,7 @@ function InitValues(ply)
     ply:SetNWInt("Downs", 0)
     ply:SetNWString("Info", "")
     ply:SetNWBool("ShowInfo", false)
-    ply:SetNWBool("Attack1", false)
+    ply.shopEntity = nil
     ply.maxStamina = cMaxStamina
     ply.stamina = cMaxStamina
     ply.stamimaReg = false
@@ -65,7 +65,7 @@ function GM:PlayerLoadout(ply)
     for i = 1, #cInitLoadout, 3 do
         ply:Give(cInitLoadout[i])
         if cInitLoadout[i + 2] > 0 then
-            ply:GiveAmmo(cInitLoadout[i + 2], cInitLoadout[i + 1], true)
+            ply:SetAmmo(cInitLoadout[i + 2], cInitLoadout[i + 1])
         end
     end
 end

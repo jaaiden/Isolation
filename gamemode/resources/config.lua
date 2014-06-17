@@ -17,7 +17,7 @@ cPrepTime = 15
 -- Adds experience to killer of NPC. (This will be multiplied by the round number; Default: 3)
 cExperience = 2
 -- Initial zombie count for first round. (Each consecutive round will increase this; Default: 8)
-cInitZombies = 16
+cInitZombies = 8
 -- Maximum spawn time in seconds for zombie spawning. (Default: 3)
 cMaxSpawnTime = 1
 -- Starting health for zombies (Default: 5)
@@ -57,7 +57,8 @@ enableDatabase = false
 
 -- Initial weapon loadout
 cInitLoadout = {
-	"weapon_bo1_1911", "Pistol", 120
+	"weapon_bo1_1911", "Pistol", 120,
+	"weapon_frag", "frag", 0
 }
 -- Amount of money to start with. (Default: 500)
 cStartMoney = 500

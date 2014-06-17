@@ -1,7 +1,7 @@
 include("client/concommands.lua")
 
-cash = 0
-
+local cash = 0
+hudDisabled = false
 avatar = vgui.Create("AvatarImage", Panel)
 avatar:SetSize(80, 80)
 
@@ -55,52 +55,53 @@ hook.Add("HUDShouldDraw", "DisableDefault", function(item)
 end)
 
 hook.Add("HUDPaint", "IsolationHUD", function()
-	local ply = LocalPlayer()
+	if !hudDisabled then
+		local ply = LocalPlayer()
 
-	draw.RoundedBoxEx(0, 10, ScrH() - 110, 300, 90, Color(0, 0, 0, 127), false, false, false, false)
-	draw.RoundedBoxEx(0, ScrW() - 310, ScrH() - 110, 300, 90, Color(0, 0, 0, 127), false, false, false, false)
-	draw.RoundedBoxEx(0, 10, ScrH() - 20, ScrW() - 20, 20, Color(0, 0, 0, 127), false, false, false, false)
-	surface.SetDrawColor(200, 0, 0, 255)
-	surface.DrawOutlinedRect(10, ScrH() - 20, ScrW() - 20, 21)
-	draw.RoundedBoxEx(0, 14, ScrH() - 16, (ScrW() - 28) * (ply:GetNWInt("Exp") / ply:GetNWInt("MaxExp")), 14, Color(180, 180, 0, 255), false, false, false, false)
+		draw.RoundedBoxEx(0, 10, ScrH() - 110, 300, 90, Color(0, 0, 0, 127), false, false, false, false)
+		draw.RoundedBoxEx(0, ScrW() - 310, ScrH() - 110, 300, 90, Color(0, 0, 0, 127), false, false, false, false)
+		draw.RoundedBoxEx(0, 10, ScrH() - 20, ScrW() - 20, 20, Color(0, 0, 0, 127), false, false, false, false)
+		surface.SetDrawColor(200, 0, 0, 255)
+		surface.DrawOutlinedRect(10, ScrH() - 20, ScrW() - 20, 21)
+		draw.RoundedBoxEx(0, 14, ScrH() - 16, (ScrW() - 28) * (ply:GetNWInt("Exp") / ply:GetNWInt("MaxExp")), 14, Color(180, 180, 0, 255), false, false, false, false)
 
-	avatar:SetPos(20, ScrH() - 100)
-	avatar:SetPlayer(ply, 64)
+		avatar:SetPos(20, ScrH() - 100)
+		avatar:SetPlayer(ply, 64)
 
-	draw.SimpleText("Round: " .. ply:GetNWInt("Round"), "HUDFont1", 120, ScrH() - 100, Color(200, 0, 0, 255))
+		draw.SimpleText("Round: " .. ply:GetNWInt("Round"), "HUDFont1", 120, ScrH() - 100, Color(200, 0, 0, 255))
 
-	draw.SimpleText("Zombies: " .. ply:GetNWInt("Zombies"), "HUDFont1", 120, ScrH() - 72.5, Color(200, 0, 0, 255))
+		draw.SimpleText("Zombies: " .. ply:GetNWInt("Zombies"), "HUDFont1", 120, ScrH() - 72.5, Color(200, 0, 0, 255))
 
-	change = ply:GetNWInt("Cash") - cash
-	if change != 0 then
-		if change < 0 then
-			cash = cash - 1
-			draw.SimpleText(change, "HUDFont2", 260, ScrH() - 55, Color(200, 0, 0, 255))
-		elseif change > 0 then
-			cash = cash + 1
-			draw.SimpleText("+" .. change, "HUDFont2", 260, ScrH() - 55, Color(200, 200, 0, 255))
+		change = ply:GetNWInt("Cash") - cash
+		if change != 0 then
+			if change < 0 then
+				cash = cash - 1
+				draw.SimpleText(change, "HUDFont2", 260, ScrH() - 55, Color(200, 0, 0, 255))
+			elseif change > 0 then
+				cash = cash + 1
+				draw.SimpleText("+" .. change, "HUDFont2", 260, ScrH() - 55, Color(200, 200, 0, 255))
+			end
 		end
-	end
-	draw.SimpleText("Money: $" .. cash, "HUDFont1", 120, ScrH() - 45, Color(200, 200, 0, 255))
-	draw.SimpleText(ply:GetNWInt("Exp") .. " / " .. ply:GetNWInt("MaxExp"), "HUDFont2", ScrW() / 2, ScrH() - 10, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-	draw.SimpleText("Level: " .. ply:GetNWInt("Level"), "HUDFont1", ScrW() / 2, ScrH() - 30, Color(200, 0, 0, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-	if ply:Health() > 0 then
-		if ply:GetActiveWeapon() != nil then
-			draw.SimpleText("Ammo: " .. ply:GetActiveWeapon():Clip1() .. " / " .. ply:GetAmmoCount(ply:GetActiveWeapon():GetPrimaryAmmoType()), "HUDFont1", ScrW() - 300, ScrH() - 100, Color(255, 255, 255, 255))
+		draw.SimpleText("Money: $" .. cash, "HUDFont1", 120, ScrH() - 45, Color(200, 200, 0, 255))
+		draw.SimpleText(ply:GetNWInt("Exp") .. " / " .. ply:GetNWInt("MaxExp"), "HUDFont2", ScrW() / 2, ScrH() - 10, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		draw.SimpleText("Level: " .. ply:GetNWInt("Level"), "HUDFont1", ScrW() / 2, ScrH() - 30, Color(200, 0, 0, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		if ply:Health() > 0 then
+			if ply:GetActiveWeapon() != nil then
+				draw.SimpleText("Ammo: " .. ply:GetActiveWeapon():Clip1() .. " / " .. ply:GetAmmoCount(ply:GetActiveWeapon():GetPrimaryAmmoType()), "HUDFont1", ScrW() - 300, ScrH() - 100, Color(255, 255, 255, 255))
+			end
+		elseif ply:GetObserverTarget() != nil then
+			draw.SimpleText("Spectating " .. ply:GetObserverTarget():Nick(), "HUDFont1", ScrW() - 300, ScrH() - 80, Color(255, 255, 255, 255))
 		end
-	elseif ply:GetObserverTarget() != nil then
-		draw.SimpleText("Spectating " .. ply:GetObserverTarget():Nick(), "HUDFont1", ScrW() - 300, ScrH() - 80, Color(255, 255, 255, 255))
-	end
-	if ply:GetNWInt("Preperation") then
-		draw.SimpleText("Round " .. (ply:GetNWInt("Round") + 1) .. " Starts In " .. ply:GetNWInt("TimeLeft") .. " Second(s)", "HUDFont1", ScrW() / 2, 20, Color(200, 0, 0, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
-	end
-
-	if ply:GetNWBool("ShowInfo") then
-		draw.SimpleText(ply:GetNWString("Info"), "HUDFont1", ScrW()/2, ScrH()-130, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		if ply:GetNWInt("Preperation") then
+			draw.SimpleText("Round " .. (ply:GetNWInt("Round") + 1) .. " Starts In " .. ply:GetNWInt("TimeLeft") .. " Second(s)", "HUDFont1", ScrW() / 2, 20, Color(200, 0, 0, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		end
+		if ply:GetNWBool("ShowInfo") then
+			draw.SimpleText(ply:GetNWString("Info"), "HUDFont1", ScrW()/2, ScrH()-130, Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		end
 	end
 end)
 
-
+timer.Create( "removeRagdolls", 20, 0, function() game.RemoveRagdolls() end )
 
 /* Pre-Game Lobby System
 ========================*/
