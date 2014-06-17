@@ -4,5 +4,5 @@
 	"title"		"isolation"
 	"maps"		"^is_"
 	"menusystem"	"1"
-	"workshopid"	""
+	"workshopid"	"265458505"
 }
